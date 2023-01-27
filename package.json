@@ -1,0 +1,23 @@
+{
+  "name": "storage",
+  "version": "0.1.0",
+  "description": "Simple universal storage (localStorage, sessionStorage, custom)",
+  "type": "module",
+  "scripts": {
+    "start": "neod dev --ts",
+    "build": "neod build",
+    "format": "neod format"
+  },
+  "keywords": [
+    "aoc"
+  ],
+  "author": "Maciej Caderek",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^18.11.18",
+    "neod": "^0.3.9"
+  },
+  "engines": {
+    "node": ">=16.13.0"
+  }
+}
