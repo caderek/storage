@@ -29,3 +29,8 @@ storage.set("hey", undefined)
 console.log(storage)
 console.log(storage.size)
 console.log({ hey: storage.get("hey") })
+
+console.log(storage.keys())
+console.log(storage.entries())
+
+console.log(storage.getAll())

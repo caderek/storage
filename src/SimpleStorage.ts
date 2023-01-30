@@ -6,8 +6,8 @@ type JSONObject = { [key: string]: string | number | null | JSONObject | any[] }
 class SimpleStorage<T extends JSONObject> {
   #storage: Storage
   #subscribers = new Map<
-    <K extends keyof T>(key: K, value: T[K]) => void,
-    Set<keyof T> | null
+    Symbol,
+    [<K extends keyof T>(key: K, value: T[K]) => void, Set<keyof T> | null]
   >()
 
   constructor(storage: Storage, initialData: T) {
@@ -28,7 +28,7 @@ class SimpleStorage<T extends JSONObject> {
   }
 
   #notify<K extends keyof T>(key: K, value: T[K]) {
-    for (const [callback, keys] of this.#subscribers.entries()) {
+    for (const [callback, keys] of this.#subscribers.values()) {
       if (!keys || keys.has(key)) {
         callback(key, structuredClone(value))
       }
@@ -52,6 +52,28 @@ class SimpleStorage<T extends JSONObject> {
     return value === null ? undefined : JSON.parse(value)
   }
 
+  keys() {
+    const keys = []
+
+    for (let i = 0; i < this.size; i++) {
+      const key = this.#storage.key(i)
+
+      if (key !== null) {
+        keys.push(key)
+      }
+    }
+
+    return keys
+  }
+
+  entries() {
+    return this.keys().map((key) => [key, this.get(key)])
+  }
+
+  getAll() {
+    return Object.fromEntries(this.entries())
+  }
+
   set<K extends keyof T>(key: K, value: T[K]): void
   set<K extends keyof T>(key: K, mapperFn: (previousValue: T[K]) => T[K]): void
   set<K extends keyof T>(key: K, x: any): void {
@@ -69,11 +91,13 @@ class SimpleStorage<T extends JSONObject> {
     callback: <K extends keyof T>(key: K, value: T[K]) => void,
     keys?: [],
   ) {
-    this.#subscribers.set(callback, keys ? new Set(keys) : null)
+    const handle = Symbol()
+    this.#subscribers.set(handle, [callback, keys ? new Set(keys) : null])
+    return handle
   }
 
-  unsubscribe(callback: <K extends keyof T>(key: K, value: T[K]) => void) {
-    this.#subscribers.delete(callback)
+  unsubscribe(handle: Symbol) {
+    this.#subscribers.delete(handle)
   }
 
   static local<V extends JSONObject>(initialData: V) {
